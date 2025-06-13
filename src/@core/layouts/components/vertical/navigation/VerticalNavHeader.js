@@ -108,7 +108,7 @@ const VerticalNavHeader = props => {
             </svg>
             <HeaderTitle variant='h6' sx={{ ml: 3 }}>
               {/* {themeConfig.templateName} */}
-              Data 360°
+              Kashi
             </HeaderTitle>
           </StyledLink>
         </Link>
