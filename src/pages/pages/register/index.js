@@ -99,6 +99,7 @@ const RegisterPage = () => {
     if (!passwordConfirmation) errors.passwordConfirmation = 'Password confirmation is required';
     if (password && passwordConfirmation && password !== passwordConfirmation) errors.passwordConfirmation = 'Passwords do not match';
     if (!agree) errors.agree = 'You must agree to privacy policy & terms';
+
     return errors;
   };
 
@@ -111,6 +112,7 @@ const RegisterPage = () => {
     const errors = validate();
     if (Object.keys(errors).length > 0) {
       setError(Object.values(errors)[0]);
+
       return;
     }
     try {
@@ -132,8 +134,10 @@ const RegisterPage = () => {
       if (!res.ok) {
         const data = await res.json();
         setError(data.message || 'Signup failed');
+
         return;
       }
+
       // Auto-login after successful registration
       const loginRes = await fetch(`${API_BASE_URL}/auth/login`, {
         method: 'POST',
@@ -142,6 +146,7 @@ const RegisterPage = () => {
       });
       if (!loginRes.ok) {
         setError('Registration succeeded but login failed. Please login manually.');
+
         return;
       }
       const loginData = await loginRes.json();

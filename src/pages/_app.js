@@ -58,13 +58,16 @@ const App = props => {
 
   useEffect(() => {
     // Only run on client
-    if (typeof window === 'undefined') return;
+    if (typeof window === 'undefined') {
+      return;
+    }
     const publicPaths = ['/pages/login', '/pages/register'];
     const path = router.pathname;
     if (!publicPaths.includes(path)) {
       const token = Cookies.get('token');
       if (!token) {
         router.replace('/pages/login');
+
         return;
       }
       fetch(`${API_BASE_URL}/user/profile`, {
@@ -81,7 +84,7 @@ const App = props => {
           router.replace('/pages/login');
         });
     }
-  }, [router.pathname]);
+  }, [router.pathname, router, API_BASE_URL]);
 
   return (
     <CacheProvider value={emotionCache}>

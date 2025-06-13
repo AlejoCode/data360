@@ -38,6 +38,7 @@ const Dashboard = () => {
       if (!token) {
         setLoading(false);
         setError('No token found. Please login.');
+
         return;
       }
       try {
@@ -49,6 +50,7 @@ const Dashboard = () => {
         if (!res.ok) {
           setError('Failed to fetch user profile');
           setLoading(false);
+
           return;
         }
         const data = await res.json();

@@ -181,6 +181,7 @@ const LoginPage = () => {
               if (!res.ok) {
                 const data = await res.json();
                 setError(data.message || 'Login failed');
+
                 return;
               }
               const data = await res.json();
