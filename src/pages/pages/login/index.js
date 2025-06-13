@@ -57,12 +57,16 @@ const FormControlLabel = styled(MuiFormControlLabel)(({ theme }) => ({
   }
 }))
 
+import Cookies from 'js-cookie'
+
 const LoginPage = () => {
   // ** State
   const [values, setValues] = useState({
     password: '',
     showPassword: false
   })
+  const [email, setEmail] = useState('');
+  const [error, setError] = useState('');
 
   // ** Hook
   const theme = useTheme()
@@ -79,6 +83,8 @@ const LoginPage = () => {
   const handleMouseDownPassword = event => {
     event.preventDefault()
   }
+
+  const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:3000';
 
   return (
     <Box className='content-center'>
@@ -163,8 +169,30 @@ const LoginPage = () => {
             </Typography>
             <Typography variant='body2'>Please sign-in to your account and start the adventure</Typography>
           </Box>
-          <form noValidate autoComplete='off' onSubmit={e => e.preventDefault()}>
-            <TextField autoFocus fullWidth id='email' label='Email' sx={{ marginBottom: 4 }} />
+          <form noValidate autoComplete='off' onSubmit={async e => {
+            e.preventDefault();
+            setError('');
+            try {
+              const res = await fetch(`${API_BASE_URL}/auth/login`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email, password: values.password })
+              });
+              if (!res.ok) {
+                const data = await res.json();
+                setError(data.message || 'Login failed');
+                return;
+              }
+              const data = await res.json();
+              if (data.token) {
+                Cookies.set('token', data.token);
+              }
+              router.push('/');
+            } catch (err) {
+              setError('Network error');
+            }
+          }}>
+            <TextField autoFocus fullWidth id='email' label='Email' sx={{ marginBottom: 4 }} value={email} onChange={e => setEmail(e.target.value)} />
             <FormControl fullWidth>
               <InputLabel htmlFor='auth-login-password'>Password</InputLabel>
               <OutlinedInput
@@ -187,6 +215,7 @@ const LoginPage = () => {
                 }
               />
             </FormControl>
+            {error && <Typography color='error' sx={{ mb: 2 }}>{error}</Typography>}
             <Box
               sx={{ mb: 4, display: 'flex', alignItems: 'center', flexWrap: 'wrap', justifyContent: 'space-between' }}
             >
@@ -200,7 +229,7 @@ const LoginPage = () => {
               size='large'
               variant='contained'
               sx={{ marginBottom: 7 }}
-              onClick={() => router.push('/')}
+              type='submit'
             >
               Login
             </Button>

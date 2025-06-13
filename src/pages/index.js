@@ -22,10 +22,56 @@ import WeeklyOverview from 'src/views/dashboard/WeeklyOverview'
 import DailyOverview from 'src/views/dashboard/DailyOverview'
 import DepositWithdraw from 'src/views/dashboard/DepositWithdraw'
 import SalesByCountries from 'src/views/dashboard/SalesByCountries'
+import { useEffect, useState } from 'react';
+import Cookies from 'js-cookie';
+
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:3000';
 
 const Dashboard = () => {
+  const [user, setUser] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+
+  useEffect(() => {
+    const fetchProfile = async () => {
+      const token = Cookies.get('token');
+      if (!token) {
+        setLoading(false);
+        setError('No token found. Please login.');
+        return;
+      }
+      try {
+        const res = await fetch(`${API_BASE_URL}/user/profile`, {
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        });
+        if (!res.ok) {
+          setError('Failed to fetch user profile');
+          setLoading(false);
+          return;
+        }
+        const data = await res.json();
+        setUser(data);
+        setLoading(false);
+      } catch (err) {
+        setError('Network error');
+        setLoading(false);
+      }
+    };
+    fetchProfile();
+  }, []);
+
   return (
     <ApexChartWrapper>
+      {loading && <div>Loading user profile...</div>}
+      {error && <div style={{color: 'red'}}>{error}</div>}
+      {user && (
+        <div style={{marginBottom: 24}}>
+          <h2>Welcome, {user.name || user.email || 'User'}!</h2>
+          {/* Add more user info here if needed */}
+        </div>
+      )}
       <Grid container spacing={6}>
         <Grid item xs={12} md={6} lg={4}>
           <TotalEarning />

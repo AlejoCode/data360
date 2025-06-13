@@ -21,28 +21,28 @@ const navigation = () => {
       title: 'Ajustes de Cuenta',
       icon: AccountCogOutline,
       path: '/account-settings'
-    },
-    {
-      sectionTitle: 'Paginas'
-    },
-    {
-      title: 'Login',
-      icon: Login,
-      path: '/pages/login',
-      openInNewTab: true
-    },
-    {
-      title: 'Registrarse',
-      icon: AccountPlusOutline,
-      path: '/pages/register',
-      openInNewTab: true
-    },
-    {
-      title: 'Error',
-      icon: AlertCircleOutline,
-      path: '/pages/error',
-      openInNewTab: true
     }
+    // {
+    //   sectionTitle: 'Paginas'
+    // },
+    // {
+    //   title: 'Login',
+    //   icon: Login,
+    //   path: '/pages/login',
+    //   openInNewTab: true
+    // },
+    // {
+    //   title: 'Registrarse',
+    //   icon: AccountPlusOutline,
+    //   path: '/pages/register',
+    //   openInNewTab: true
+    // },
+    // {
+    //   title: 'Error',
+    //   icon: AlertCircleOutline,
+    //   path: '/pages/error',
+    //   openInNewTab: true
+    // }
 
     // {
     //   sectionTitle: 'User Interface'

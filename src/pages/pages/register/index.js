@@ -58,26 +58,100 @@ const FormControlLabel = styled(MuiFormControlLabel)(({ theme }) => ({
   }
 }))
 
+import Cookies from 'js-cookie';
+
 const RegisterPage = () => {
   // ** States
-  const [values, setValues] = useState({
-    password: '',
-    showPassword: false
-  })
+  const [name, setName] = useState('');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [passwordConfirmation, setPasswordConfirmation] = useState('');
+  const [role, setRole] = useState('');
+  const [companyName, setCompanyName] = useState('');
+  const [industry, setIndustry] = useState('');
+  const [error, setError] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
+  const [submitted, setSubmitted] = useState(false);
+  const [agree, setAgree] = useState(false);
 
   // ** Hook
   const theme = useTheme()
 
-  const handleChange = prop => event => {
-    setValues({ ...values, [prop]: event.target.value })
-  }
-
   const handleClickShowPassword = () => {
-    setValues({ ...values, showPassword: !values.showPassword })
+    setShowPassword((prev) => !prev);
   }
 
   const handleMouseDownPassword = event => {
     event.preventDefault()
+  }
+
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+  const validate = () => {
+    const errors = {};
+    if (!name) errors.name = 'Name is required';
+    if (!email) errors.email = 'Email is required';
+    else if (!emailRegex.test(email)) errors.email = 'Email is not valid';
+    if (!role) errors.role = 'Role is required';
+    if (!companyName) errors.companyName = 'Company name is required';
+    if (!industry) errors.industry = 'Industry is required';
+    if (!password) errors.password = 'Password is required';
+    if (!passwordConfirmation) errors.passwordConfirmation = 'Password confirmation is required';
+    if (password && passwordConfirmation && password !== passwordConfirmation) errors.passwordConfirmation = 'Passwords do not match';
+    if (!agree) errors.agree = 'You must agree to privacy policy & terms';
+    return errors;
+  };
+
+  const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:3000';
+
+  const handleSubmit = async e => {
+    e.preventDefault();
+    setError('');
+    setSubmitted(true);
+    const errors = validate();
+    if (Object.keys(errors).length > 0) {
+      setError(Object.values(errors)[0]);
+      return;
+    }
+    try {
+      const res = await fetch(`${API_BASE_URL}/users`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          user: {
+            name,
+            email,
+            password,
+            password_confirmation: passwordConfirmation,
+            role,
+            company_name: companyName,
+            industry
+          }
+        })
+      });
+      if (!res.ok) {
+        const data = await res.json();
+        setError(data.message || 'Signup failed');
+        return;
+      }
+      // Auto-login after successful registration
+      const loginRes = await fetch(`${API_BASE_URL}/auth/login`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password })
+      });
+      if (!loginRes.ok) {
+        setError('Registration succeeded but login failed. Please login manually.');
+        return;
+      }
+      const loginData = await loginRes.json();
+      if (loginData.token) {
+        Cookies.set('token', loginData.token);
+      }
+      window.location.href = '/';
+    } catch (err) {
+      setError('Network error');
+    }
   }
 
   return (
@@ -157,23 +231,26 @@ const RegisterPage = () => {
               {themeConfig.templateName}
             </Typography>
           </Box>
-          <Box sx={{ mb: 6 }}>
+          <Box sx={{ mb: 6, textAlign: 'center' }}>
             <Typography variant='h5' sx={{ fontWeight: 600, marginBottom: 1.5 }}>
               Adventure starts here 🚀
             </Typography>
-            <Typography variant='body2'>Make your app management easy and fun!</Typography>
+            <Typography variant='body2'>Make your business data management easy and fun!</Typography>
           </Box>
-          <form noValidate autoComplete='off' onSubmit={e => e.preventDefault()}>
-            <TextField autoFocus fullWidth id='username' label='Username' sx={{ marginBottom: 4 }} />
-            <TextField fullWidth type='email' label='Email' sx={{ marginBottom: 4 }} />
-            <FormControl fullWidth>
+          <form noValidate autoComplete='off' onSubmit={handleSubmit}>
+            <TextField autoFocus fullWidth id='name' label='Name' sx={{ marginBottom: 4 }} value={name} onChange={e => setName(e.target.value)} error={submitted && !name} helperText={submitted && !name ? 'Name is required' : ''} />
+            <TextField fullWidth type='email' label='Email' sx={{ marginBottom: 4 }} value={email} onChange={e => setEmail(e.target.value)} error={submitted && (!email || !emailRegex.test(email))} helperText={submitted && !email ? 'Email is required' : (submitted && !emailRegex.test(email) ? 'Email is not valid' : '')} />
+            <TextField fullWidth label='Role' sx={{ marginBottom: 4 }} value={role} onChange={e => setRole(e.target.value)} error={submitted && !role} helperText={submitted && !role ? 'Role is required' : ''} />
+            <TextField fullWidth label='Company Name' sx={{ marginBottom: 4 }} value={companyName} onChange={e => setCompanyName(e.target.value)} error={submitted && !companyName} helperText={submitted && !companyName ? 'Company name is required' : ''} />
+            <TextField fullWidth label='Industry' sx={{ marginBottom: 4 }} value={industry} onChange={e => setIndustry(e.target.value)} error={submitted && !industry} helperText={submitted && !industry ? 'Industry is required' : ''} />
+            <FormControl fullWidth error={submitted && !password} sx={{ marginBottom: 0 }}>
               <InputLabel htmlFor='auth-register-password'>Password</InputLabel>
               <OutlinedInput
                 label='Password'
-                value={values.password}
+                value={password}
                 id='auth-register-password'
-                onChange={handleChange('password')}
-                type={values.showPassword ? 'text' : 'password'}
+                onChange={e => setPassword(e.target.value)}
+                type={showPassword ? 'text' : 'password'}
                 endAdornment={
                   <InputAdornment position='end'>
                     <IconButton
@@ -182,14 +259,16 @@ const RegisterPage = () => {
                       onMouseDown={handleMouseDownPassword}
                       aria-label='toggle password visibility'
                     >
-                      {values.showPassword ? <EyeOutline fontSize='small' /> : <EyeOffOutline fontSize='small' />}
+                      {showPassword ? <EyeOutline fontSize='small' /> : <EyeOffOutline fontSize='small' />}
                     </IconButton>
                   </InputAdornment>
                 }
               />
+              {submitted && !password && <Typography color='error' variant='caption'>Password is required</Typography>}
             </FormControl>
+            <TextField fullWidth type='password' label='Confirm Password' sx={{ marginBottom: 4, marginTop: 4 }} value={passwordConfirmation} onChange={e => setPasswordConfirmation(e.target.value)} error={submitted && (!passwordConfirmation || password !== passwordConfirmation)} helperText={submitted && !passwordConfirmation ? 'Password confirmation is required' : (submitted && password !== passwordConfirmation ? 'Passwords do not match' : '')} />
             <FormControlLabel
-              control={<Checkbox />}
+              control={<Checkbox checked={agree} onChange={e => setAgree(e.target.checked)} />}
               label={
                 <Fragment>
                   <span>I agree to </span>
@@ -199,6 +278,8 @@ const RegisterPage = () => {
                 </Fragment>
               }
             />
+            {submitted && !agree && <Typography color='error' variant='caption' sx={{ mb: 2, display: 'block' }}>You must agree to privacy policy & terms</Typography>}
+            {error && <Typography color='error' sx={{ mb: 2 }}>{error}</Typography>}
             <Button fullWidth size='large' type='submit' variant='contained' sx={{ marginBottom: 7 }}>
               Sign up
             </Button>

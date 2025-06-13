@@ -27,6 +27,10 @@ import 'react-perfect-scrollbar/dist/css/styles.css'
 // ** Global css styles
 import '../../styles/globals.css'
 
+import { useEffect } from 'react';
+import { useRouter } from 'next/router';
+import Cookies from 'js-cookie';
+
 const clientSideEmotionCache = createEmotionCache()
 
 // ** Pace Loader
@@ -45,9 +49,39 @@ if (themeConfig.routingLoader) {
 // ** Configure JSS & ClassName
 const App = props => {
   const { Component, emotionCache = clientSideEmotionCache, pageProps } = props
+  const router = useRouter();
 
   // Variables
   const getLayout = Component.getLayout ?? (page => <UserLayout>{page}</UserLayout>)
+
+  const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:3000';
+
+  useEffect(() => {
+    // Only run on client
+    if (typeof window === 'undefined') return;
+    const publicPaths = ['/pages/login', '/pages/register'];
+    const path = router.pathname;
+    if (!publicPaths.includes(path)) {
+      const token = Cookies.get('token');
+      if (!token) {
+        router.replace('/pages/login');
+        return;
+      }
+      fetch(`${API_BASE_URL}/user/profile`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      })
+        .then(res => {
+          if (!res.ok) {
+            Cookies.remove('token');
+            router.replace('/pages/login');
+          }
+        })
+        .catch(() => {
+          Cookies.remove('token');
+          router.replace('/pages/login');
+        });
+    }
+  }, [router.pathname]);
 
   return (
     <CacheProvider value={emotionCache}>

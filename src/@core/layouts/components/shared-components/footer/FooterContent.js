@@ -11,16 +11,7 @@ const FooterContent = () => {
   return (
     <Box sx={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between' }}>
       <Typography sx={{ mr: 2 }}>
-        {`© ${new Date().getFullYear()}, Gracias StartApp Weekend `}
-        {` Hecho con `}
-        <Box component='span' sx={{ color: 'error.main' }}>
-          ❤️
-        </Box>
-        {` por `}
-        <Link target='_blank' href='/'>
-          Data 360°
-        </Link>
-        {` para el mundo `}
+        {`© ${new Date().getFullYear()} Data 360 Todos los derechos reservados`}
       </Typography>
       {hidden ? null : (
         <Box sx={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', '& :not(:last-child)': { mr: 4 } }}>

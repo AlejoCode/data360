@@ -32,6 +32,8 @@ const BadgeContentSpan = styled('span')(({ theme }) => ({
   boxShadow: `0 0 0 2px ${theme.palette.background.paper}`
 }))
 
+import Cookies from 'js-cookie'
+
 const UserDropdown = () => {
   // ** States
   const [anchorEl, setAnchorEl] = useState(null)
@@ -144,7 +146,10 @@ const UserDropdown = () => {
           </Box>
         </MenuItem>
         <Divider />
-        <MenuItem sx={{ py: 2 }} onClick={() => handleDropdownClose('/pages/login')}>
+        <MenuItem sx={{ py: 2 }} onClick={() => {
+          Cookies.remove('token');
+          handleDropdownClose('/pages/login');
+        }}>
           <LogoutVariant sx={{ marginRight: 2, fontSize: '1.375rem', color: 'text.secondary' }} />
           Logout
         </MenuItem>
